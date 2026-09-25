@@ -9,6 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
+    <!-- Confetti bibliotheek voor de beloning -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
     <style>
         :root {
             --primary: #2563eb;
@@ -259,6 +262,26 @@
             align-items: center;
             gap: 4px;
         }
+
+        /* Braille styling */
+        .braille-card {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 4px;
+            text-align: center;
+        }
+        .braille-card .char {
+            font-size: 24px;
+            line-height: 1.1;
+            display: block;
+            color: #1e293b;
+        }
+        .braille-card .letter {
+            font-size: 12px;
+            font-weight: bold;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -274,6 +297,7 @@
                     <option value="gameScreen">Spel: Bouw het Oog</option>
                     <option value="factsSection">Weetjes & Quiz</option>
                     <option value="storySection">Het Verhaal</option>
+                    <option value="brailleSection">Braille Raadsel</option>
                     <option value="stopMotionSection">Stopmotion Studio</option>
                 </select>
             </div>
@@ -362,6 +386,67 @@
   <p>Jezus vroeg aan hem: ‘Wat kan ik voor je doen?’ De blinde man antwoordde: ‘Meester, ik wil weer kunnen zien.’ Jezus zei: ‘Dat is goed. Je bent beter geworden dankzij je geloof.’ Op datzelfde moment kon de man weer zien. Hij ging met Jezus mee, op weg naar Jeruzalem.</p>
 </article>
         </div>
+        <button class="btn btn-green" onclick="showSection('brailleSection')">Volgende: Braille Raadsel ⠃⠗⠁⠊⠇⠇⠑ ➡️</button>
+    </div>
+
+    <!-- Braille Raadsel -->
+    <div id="brailleSection" class="container hidden">
+        <h2>⠃⠗⠁⠊⠇⠇⠑ Braille Raadsel</h2>
+        <p style="margin: 10px 0; line-height: 1.5;">
+            Bartiméus was blind en kon de wereld niet zien. Blinde mensen kunnen lezen door te voelen met hun vingers via <strong>Braille</strong>! 
+            Hieronder zie je een geheim bericht in Braille. Kun jij ontcijferen wat Bartiméus riep?
+        </p>
+
+        <!-- Braille Afbeelding -->
+        <div style="text-align: center; margin: 15px 0;">
+            <img src="braille.png" alt="Braille Raadsel" style="max-width: 100%; max-width: 500px; border-radius: 8px; border: 2px solid #cbd5e1; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        </div>
+
+        <!-- Spiekkaart / Braille Alfabet -->
+        <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-bottom: 5px;">🔤 Het Braillealfabet (Spiekkaart)</h3>
+            <p style="font-size: 14px; color: #64748b; margin-bottom: 12px;">Zoek de puntjes op in de kaart om de letters te vinden:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px;">
+                <div class="braille-card"><span class="char">⠁</span><span class="letter">A</span></div>
+                <div class="braille-card"><span class="char">⠃</span><span class="letter">B</span></div>
+                <div class="braille-card"><span class="char">⠉</span><span class="letter">C</span></div>
+                <div class="braille-card"><span class="char">⠙</span><span class="letter">D</span></div>
+                <div class="braille-card"><span class="char">⠑</span><span class="letter">E</span></div>
+                <div class="braille-card"><span class="char">⠋</span><span class="letter">F</span></div>
+                <div class="braille-card"><span class="char">⠛</span><span class="letter">G</span></div>
+                <div class="braille-card"><span class="char">⠓</span><span class="letter">H</span></div>
+                <div class="braille-card"><span class="char">⠊</span><span class="letter">I</span></div>
+                <div class="braille-card"><span class="char">⠚</span><span class="letter">J</span></div>
+                <div class="braille-card"><span class="char">⠅</span><span class="letter">K</span></div>
+                <div class="braille-card"><span class="char">⠇</span><span class="letter">L</span></div>
+                <div class="braille-card"><span class="char">⠍</span><span class="letter">M</span></div>
+                <div class="braille-card"><span class="char">⠝</span><span class="letter">N</span></div>
+                <div class="braille-card"><span class="char">⠕</span><span class="letter">O</span></div>
+                <div class="braille-card"><span class="char">⠏</span><span class="letter">P</span></div>
+                <div class="braille-card"><span class="char">⠟</span><span class="letter">Q</span></div>
+                <div class="braille-card"><span class="char">⠗</span><span class="letter">R</span></div>
+                <div class="braille-card"><span class="char">⠎</span><span class="letter">S</span></div>
+                <div class="braille-card"><span class="char">⠞</span><span class="letter">T</span></div>
+                <div class="braille-card"><span class="char">⠥</span><span class="letter">U</span></div>
+                <div class="braille-card"><span class="char">⠧</span><span class="letter">V</span></div>
+                <div class="braille-card"><span class="char">⠺</span><span class="letter">W</span></div>
+                <div class="braille-card"><span class="char">⠭</span><span class="letter">X</span></div>
+                <div class="braille-card"><span class="char">⠽</span><span class="letter">Y / IJ</span></div>
+                <div class="braille-card"><span class="char">⠵</span><span class="letter">Z</span></div>
+            </div>
+        </div>
+
+        <!-- Invoergedeelte -->
+        <div style="background: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary);">
+            <h3>✍️ Wat staat er op de afbeelding?</h3>
+            <p style="margin: 5px 0 10px 0; font-size: 14px;">Typ de juiste zin hieronder in:</p>
+            <input type="text" id="brailleInput" placeholder="Typ hier de gevonden zin..." style="padding: 12px; width: 100%; max-width: 500px; border: 2px solid #cbd5e1; border-radius: 6px; font-size: 16px; margin-bottom: 10px;"><br>
+            <button class="btn btn-blue" onclick="checkBrailleAnswer()">Controleer Antwoord 🎯</button>
+            <div id="brailleFeedback" style="margin-top: 10px; font-weight: bold; font-size: 16px;"></div>
+        </div>
+
+        <br>
         <button class="btn btn-green" onclick="showSection('stopMotionSection')">Volgende: Stopmotion 🎬</button>
     </div>
 
@@ -570,6 +655,33 @@
                 currentQuizIndex++;
                 showQuizQuestion();
             }, 1200);
+        }
+
+        /* --- BRAILLE CONTROLE & CONFETTI --- */
+        function checkBrailleAnswer() {
+            const input = document.getElementById('brailleInput').value.trim().toUpperCase();
+            const feedback = document.getElementById('brailleFeedback');
+
+            // Verwijder spaties/leestekens om vergelijking soepel te maken
+            const cleanInput = input.replace(/[^A-Z]/g, '');
+            const targetSolution = "ZOONVANDAVIDHEBMEDELIJDENMETMIJ";
+
+            if (cleanInput === targetSolution) {
+                feedback.style.color = "var(--success)";
+                feedback.innerHTML = "🎉 Super goed gedaan, " + currentUsername + "! Je hebt de geheimtaal helemaal juist ontcijferd!";
+
+                // Start feestelijke confetti
+                if (typeof confetti === 'function') {
+                    confetti({
+                        particleCount: 120,
+                        spread: 80,
+                        origin: { y: 0.6 }
+                    });
+                }
+            } else {
+                feedback.style.color = "#dc2626";
+                feedback.innerText = "❌ Nog niet helemaal juist. Kijk goed naar het braille-alfabet en probeer het opnieuw!";
+            }
         }
 
         /* --- STOPMOTION STUDIO MET FIREBASE LIVE-FEED --- */
