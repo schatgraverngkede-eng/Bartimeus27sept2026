@@ -250,15 +250,18 @@
     <!-- Clubleider Paneel -->
     <div id="leaderBar">
         <span>👑 <strong>Clubleider Bediening</strong></span>
-        <div>
-            <label for="sectionSelect">Spring naar: </label>
-            <select id="sectionSelect" onchange="showSection(this.value)">
-                <option value="loginScreen">Inloggen</option>
-                <option value="gameScreen">Spel: Bouw het Oog</option>
-                <option value="factsSection">Weetjes & Quiz</option>
-                <option value="storySection">Het Verhaal</option>
-                <option value="stopMotionSection">Stopmotion Studio</option>
-            </select>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div>
+                <label for="sectionSelect">Spring naar: </label>
+                <select id="sectionSelect" onchange="showSection(this.value)">
+                    <option value="loginScreen">Inloggen</option>
+                    <option value="gameScreen">Spel: Bouw het Oog</option>
+                    <option value="factsSection">Weetjes & Quiz</option>
+                    <option value="storySection">Het Verhaal</option>
+                    <option value="stopMotionSection">Stopmotion Studio</option>
+                </select>
+            </div>
+            <button class="btn btn-red" style="padding: 6px 12px; font-size: 13px; margin: 0;" onclick="resetDatabase()">🗑️ Wis Database</button>
         </div>
     </div>
 
@@ -397,6 +400,22 @@
                 initCamera();
             } else {
                 stopCamera();
+            }
+        }
+
+        /* --- DATABASE RESET FUNCTIE --- */
+        function resetDatabase() {
+            const bevestig = confirm("⚠️ Weet je zeker dat je ALLE filmpjes uit de database wilt verwijderen?\nDit kan niet ongedaan worden gemaakt.");
+            if (bevestig) {
+                db.ref('videos').remove()
+                    .then(() => {
+                        document.getElementById('videoFeed').innerHTML = '';
+                        alert("✅ De database is succesvol leeggemaakt!");
+                    })
+                    .catch((err) => {
+                        console.error("Fout bij leegmaken database:", err);
+                        alert("❌ Fout bij het leegmaken van de database.");
+                    });
             }
         }
 
@@ -694,7 +713,7 @@
             feed.prepend(card);
         }
 
-        /* --- REALTIME LISTENER VOOR FIREBASE --- */
+        /* --- REALTIME LISTENERS VOOR FIREBASE --- */
         function initFirebaseListeners() {
             // Luister continu naar nieuw toegevoegde filmpjes
             db.ref('videos').orderByChild('timestamp').limitToLast(20).on('child_added', (snapshot) => {
@@ -702,6 +721,12 @@
                 if (data && data.videoData) {
                     addVideoToFeed(data.videoData, data.author, snapshot.key);
                 }
+            });
+
+            // Luister naar verwijderde filmpjes (voor als de database wordt gereset)
+            db.ref('videos').on('child_removed', (snapshot) => {
+                const el = document.getElementById('vid-' + snapshot.key);
+                if (el) el.remove();
             });
         }
 
