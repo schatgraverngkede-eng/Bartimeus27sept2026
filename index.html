@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouw het Oog & Stopmotion</title>
+
+    <!-- Firebase Compat SDK's voor standalone HTML gebruik -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --bg: #f8fafc;
+            --text: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 15px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .btn { 
+            touch-action: manipulation; 
+            -webkit-tap-highlight-color: transparent; 
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.1s, opacity 0.2s;
+            display: inline-block;
+            margin: 5px 0;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-blue { background-color: var(--primary); }
+        .btn-green { background-color: var(--success); }
+        .btn-orange { background-color: var(--warning); }
+        .btn-gray { background-color: #64748b; }
+        .btn-red { background-color: #dc2626; }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        #leaderBar {
+            background: #1e293b;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        #leaderBar select {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        #game-container {
+            display: grid;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        #info-box {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .option-btn {
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            touch-action: manipulation;
+        }
+
+        .option-btn.correct { background: #dcfce7; border-color: var(--success); color: #14532d; }
+        .option-btn.wrong { background: #fee2e2; border-color: #ef4444; color: #7f1d1d; }
+
+        .slideshow-container {
+            position: relative;
+            background: #f1f5f9;
+            padding: 30px 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 15px 0;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .slide-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        #slideText {
+            font-size: 18px;
+            font-weight: 500;
+            padding: 0 15px;
+            flex-grow: 1;
+        }
+
+        .camera-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        video#cameraFeed {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .frames-reel {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            min-height: 90px;
+        }
+
+        .frame-thumb {
+            position: relative;
+            height: 70px;
+            flex-shrink: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 2px solid #cbd5e1;
+        }
+
+        .frame-thumb img {
+            height: 100%;
+            display: block;
+        }
+
+        .frame-thumb .del-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(220, 38, 38, 0.85);
+            color: white;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .video-feed {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .video-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .video-card video {
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #000;
+        }
+
+        .video-author {
+            font-size: 13px;
+            font-weight: bold;
+            color: #475569;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Clubleider Paneel -->
+    <div id="leaderBar">
+        <span>👑 <strong>Clubleider Bediening</strong></span>
+        <div>
+            <label for="sectionSelect">Spring naar: </label>
+            <select id="sectionSelect" onchange="showSection(this.value)">
+                <option value="loginScreen">Inloggen</option>
+                <option value="gameScreen">Spel: Bouw het Oog</option>
+                <option value="factsSection">Weetjes & Quiz</option>
+                <option value="storySection">Het Verhaal</option>
+                <option value="stopMotionSection">Stopmotion Studio</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Login -->
+    <div id="loginScreen" class="container">
+        <h1>Welkom bij de Oog-App! 👁️</h1>
+        <p style="margin: 10px 0;">Vul je naam of clubnaam in om te beginnen.</p>
+        <input type="text" id="username" placeholder="Naam / Clubnaam" style="padding: 10px; width: 100%; max-width: 300px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 15px;"><br>
+        <button class="btn btn-blue" onclick="startApp()">Start de Activiteit 🚀</button>
+    </div>
+
+    <!-- Game -->
+    <div id="gameScreen" class="container hidden">
+        <h1>Bouw het Oog! 👁️</h1>
+        <p>Lees de omschrijving en kies het juiste onderdeel van het oog.</p>
+        <div id="game-container">
+            <div id="info-box">
+                <h2>Omschrijving:</h2>
+                <div id="description">Laden...</div>
+            </div>
+            <div id="interactive-area">
+                <div class="target-term" id="target-title">Zoek het juiste onderdeel:</div>
+                <div class="options-grid" id="options-container"></div>
+                <div id="score-board" style="font-weight: bold; margin-bottom: 10px;">Voortgang: <span id="progress">0</span> / 8</div>
+                <button id="reset-btn" class="btn btn-gray" onclick="startGame()">Opnieuw Spelen</button>
+            </div>
+        </div>
+        <br>
+        <button class="btn btn-green" onclick="showSection('factsSection')">Volgende: De Weetjes ➡️</button>
+    </div>
+
+    <!-- Weetjes -->
+    <div id="factsSection" class="container hidden">
+        <h2>🧠 Weetjes over je ogen</h2>
+        <p style="margin-top: 5px; color: #64748b;">Gebruik de pijltjes om de weetjes één voor één te bekijken.</p>
+        
+        <div class="slideshow-container">
+            <button class="slide-btn prev" onclick="changeSlide(-1)">❮</button>
+            <div id="slideText">Slide 1</div>
+            <button class="slide-btn next" onclick="changeSlide(1)">❯</button>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 15px; font-weight: bold;">
+            Weetje <span id="slideNum">1</span> van <span id="slideTotal">5</span>
+        </div>
+
+        <button class="btn btn-blue" onclick="toggleQuiz()">Start de Waar/Niet Waar Quiz! 🎲</button>
+
+        <div id="quizSection" class="hidden" style="margin-top: 20px; padding: 15px; background: #fffbe0; border-radius: 8px;">
+            <h3>❓ Waar of Niet Waar?</h3>
+            <p id="quizQuestion" style="margin: 10px 0; font-size: 17px;"></p>
+            <button class="btn btn-green" onclick="answerQuiz(true)">Waar 👍</button>
+            <button class="btn btn-red" onclick="answerQuiz(false)">Niet Waar 👎</button>
+            <p id="quizFeedback" style="margin-top: 10px; font-weight: bold;"></p>
+        </div>
+
+        <br><br>
+        <button class="btn btn-green" onclick="showSection('storySection')">Volgende: Het Verhaal ➡️</button>
+    </div>
+
+    <!-- Verhaal -->
+    <div id="storySection" class="container hidden">
+        <h2>📖 Het Verhaal: De Reis van het Licht</h2>
+        <div id="storyContent" style="line-height: 1.6; margin: 15px 0;">
+            <p>Stel je voor dat lichtstralen kleine reizigers zijn. Ze vliegen door de lucht en komen aan bij je oog...</p>
+            <br>
+            <p><strong>Stap 1: Het Hoornvlies</strong> - De reizigers gaan eerst door een helder raam.</p>
+            <p><strong>Stap 2: De Pupil & Iris</strong> - De iris regelt als een poortwachter hoeveel licht er naar binnen mag.</p>
+            <p><strong>Stap 3: De Ooglens</strong> - De lens stelt alles scherp, net als bij een fotocamera.</p>
+            <p><strong>Stap 4: Het Netvlies</strong> - Achterin het oog maken de reizigers een ondersteboven foto!</p>
+            <p><strong>Stap 5: De Oogzenuw</strong> - Signalen vliegen met razendsnelle vaart naar je hersenen, die het beeld rechtop zetten.</p>
+        </div>
+        <button class="btn btn-green" onclick="showSection('stopMotionSection')">Volgende: Stopmotion 🎬</button>
+    </div>
+
+    <!-- Stopmotion -->
+    <div id="stopMotionSection" class="container hidden">
+        <h2>🎬 Stopmotion Studio</h2>
+        <p>Maak foto voor foto een animatie van het oog!</p>
+
+        <div class="camera-wrapper" style="margin-top: 15px;">
+            <video id="cameraFeed" autoplay playsinline muted></video>
+        </div>
+
+        <div class="camera-controls">
+            <button class="btn btn-blue" onclick="switchCamera()">🔄 Wissel Camera</button>
+            <button class="btn btn-orange" onclick="captureFrame()">📸 Capture Frame</button>
+            <button class="btn btn-green" id="renderBtn" onclick="renderVideo()">🎥 Genereer & Delen</button>
+        </div>
+
+        <h3>Opgenomen Frames (<span id="frameCount">0</span>)</h3>
+        <div class="frames-reel" id="framesReel"></div>
+        <button class="btn btn-red" style="padding: 5px 10px; font-size: 12px;" onclick="clearFrames()">Wis alle frames</button>
+
+        <hr style="margin: 20px 0;">
+
+        <h3>🎞️ Livefeed Gegenereerde Filmpjes</h3>
+        <p style="font-size: 14px; color: #64748b;">Alle gemaakte filmpjes verschijnen hier direct live!</p>
+        <div class="video-feed" id="videoFeed"></div>
+    </div>
+
+    <script>
+        /* --- FIREBASE CONFIGURATIE & INITIALISATIE --- */
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6hipcEEJ_e5eLa3Gg346B5un8oO2UfiQ",
+            authDomain: "schatgravers-e72e4.firebaseapp.com",
+            projectId: "schatgravers-e72e4",
+            storageBucket: "schatgravers-e72e4.firebasestorage.app",
+            messagingSenderId: "960323466754",
+            appId: "1:960323466754:web:8b974aa09bdd88310b591b",
+            measurementId: "G-1D4TL4905X"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentUsername = "Anoniem";
+
+        function startApp() {
+            const input = document.getElementById('username').value.trim();
+            if (input) {
+                currentUsername = input;
+            }
+            showSection('gameScreen');
+        }
+
+        /* --- NAVIGATIE & CLUBLEIDER BEDIENING --- */
+        function showSection(sectionId) {
+            document.querySelectorAll('.container').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(sectionId);
+            if (target) {
+                target.classList.remove('hidden');
+                document.getElementById('sectionSelect').value = sectionId;
+            }
+            if (sectionId === 'stopMotionSection') {
+                initCamera();
+            } else {
+                stopCamera();
+            }
+        }
+
+        /* --- GAME LOGIC --- */
+        const eyeParts = [
+            { term: 'Hoornvlies', desc: 'Het buitenste, heldere venster van je oog dat licht opvangt.' },
+            { term: 'Pupil', desc: 'De zwarte opening in je oog waar het licht door naar binnen gaat.' },
+            { term: 'Iris', desc: 'Het gekleurde deel van je oog dat regelt hoe groot de pupil is.' },
+            { term: 'Ooglens', desc: 'Buigt het licht om een scherp beeld te maken achterin het oog.' },
+            { term: 'Netvlies', desc: 'De binnenlaag vol sensoren (staafjes en kegeltjes) die beeld opvangen.' },
+            { term: 'Oogzenuw', desc: 'Stuurt alle beelden als elektrische signaaltjes naar je hersenen.' },
+            { term: 'Glasachtig lichaam', desc: 'De gelei-achtige vulling die je oog zijn ronde vorm geeft.' },
+            { term: 'Vaatvlies', desc: 'Het bloedvatrijke laagje dat het oog voedt met zuurstof.' }
+        ];
+
+        let currentGameIndex = 0;
+        let score = 0;
+
+        function startGame() {
+            currentGameIndex = 0;
+            score = 0;
+            updateGameStep();
+        }
+
+        function updateGameStep() {
+            if (currentGameIndex >= eyeParts.length) {
+                document.getElementById('description').innerText = "Gefeliciteerd! Je hebt alle onderdelen juist gekoppeld! 🎉";
+                document.getElementById('options-container').innerHTML = '';
+                document.getElementById('progress').innerText = eyeParts.length;
+                return;
+            }
+
+            const current = eyeParts[currentGameIndex];
+            document.getElementById('description').innerText = current.desc;
+            document.getElementById('progress').innerText = score;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const shuffled = [...eyeParts].sort(() => 0.5 - Math.random());
+            shuffled.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = item.term;
+                btn.onclick = () => checkAnswer(item.term, current.term, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, correct, btn) {
+            if (selected === correct) {
+                btn.classList.add('correct');
+                score++;
+                setTimeout(() => {
+                    currentGameIndex++;
+                    updateGameStep();
+                }, 700);
+            } else {
+                btn.classList.add('wrong');
+            }
+        }
+
+        /* --- WEETJES SLIDESHOW & QUIZ --- */
+        const facts = [
+            "Je ogen kunnen ongeveer 10 miljoen verschillende kleuren onderscheiden!",
+            "Knipperen duurt ongeveer 100 tot 150 milliseconden. Je knippert zo'n 20.000 keer per dag.",
+            "De spieren die je ogen bewegen zijn de snelste spieren in je hele lichaam.",
+            "Alle mensen met blauwe ogen delen waarschijnlijk één dezelfde voorouder!",
+            "Je oog ziet alles eigenlijk ondersteboven; je hersenen draaien het beeld voor je om."
+        ];
+
+        let currentSlide = 0;
+
+        function updateSlide() {
+            document.getElementById('slideText').innerText = facts[currentSlide];
+            document.getElementById('slideNum').innerText = currentSlide + 1;
+            document.getElementById('slideTotal').innerText = facts.length;
+        }
+
+        function changeSlide(direction) {
+            currentSlide += direction;
+            if (currentSlide < 0) currentSlide = facts.length - 1;
+            if (currentSlide >= facts.length) currentSlide = 0;
+            updateSlide();
+        }
+
+        const quizQuestions = [
+            { q: "Je oog ziet de wereld eigenlijk ondersteboven.", a: true },
+            { q: "Je pupil wordt kleiner als het donker is.", a: false },
+            { q: "Uilen kunnen hun oogbollen niet draaien.", a: true }
+        ];
+        let currentQuizIndex = 0;
+
+        function toggleQuiz() {
+            const qSec = document.getElementById('quizSection');
+            qSec.classList.toggle('hidden');
+            if (!qSec.classList.contains('hidden')) {
+                currentQuizIndex = 0;
+                showQuizQuestion();
+            }
+        }
+
+        function showQuizQuestion() {
+            if (currentQuizIndex < quizQuestions.length) {
+                document.getElementById('quizQuestion').innerText = quizQuestions[currentQuizIndex].q;
+                document.getElementById('quizFeedback').innerText = '';
+            } else {
+                document.getElementById('quizQuestion').innerText = "Quiz afgerond! Goed gedaan!";
+                document.getElementById('quizFeedback').innerText = '';
+            }
+        }
+
+        function answerQuiz(userAnswer) {
+            const correct = quizQuestions[currentQuizIndex].a;
+            const fb = document.getElementById('quizFeedback');
+            if (userAnswer === correct) {
+                fb.style.color = "green";
+                fb.innerText = "Juist! 🎉";
+            } else {
+                fb.style.color = "red";
+                fb.innerText = "Helaas, dat is niet juist.";
+            }
+            setTimeout(() => {
+                currentQuizIndex++;
+                showQuizQuestion();
+            }, 1200);
+        }
+
+        /* --- STOPMOTION STUDIO MET FIREBASE LIVE-FEED --- */
+        let mediaStream = null;
+        let facingMode = 'environment';
+        let capturedFrames = [];
+
+        async function initCamera() {
+            stopCamera();
+            try {
+                const constraints = {
+                    video: { facingMode: { ideal: facingMode } },
+                    audio: false
+                };
+                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                const videoEl = document.getElementById('cameraFeed');
+                videoEl.srcObject = mediaStream;
+            } catch (err) {
+                console.error("Camera fout:", err);
+                alert("Kon geen toegang krijgen tot de camera. Controleer je instellingen.");
+            }
+        }
+
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        }
+
+        function switchCamera() {
+            facingMode = (facingMode === 'environment') ? 'user' : 'environment';
+            initCamera();
+        }
+
+        function captureFrame() {
+            const video = document.getElementById('cameraFeed');
+            if (!video.videoWidth) return;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            capturedFrames.push(dataUrl);
+
+            renderFramesReel();
+        }
+
+        function renderFramesReel() {
+            const reel = document.getElementById('framesReel');
+            reel.innerHTML = '';
+            document.getElementById('frameCount').innerText = capturedFrames.length;
+
+            capturedFrames.forEach((frame, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'frame-thumb';
+                thumb.innerHTML = `
+                    <img src="${frame}">
+                    <button class="del-btn" onclick="deleteFrame(${idx})">×</button>
+                `;
+                reel.appendChild(thumb);
+            });
+            reel.scrollLeft = reel.scrollWidth;
+        }
+
+        function deleteFrame(idx) {
+            capturedFrames.splice(idx, 1);
+            renderFramesReel();
+        }
+
+        function clearFrames() {
+            capturedFrames = [];
+            renderFramesReel();
+        }
+
+        function renderVideo() {
+            if (capturedFrames.length === 0) {
+                alert("Maak eerst een paar foto's!");
+                return;
+            }
+
+            const renderBtn = document.getElementById('renderBtn');
+            renderBtn.innerText = "⏳ Bezig met uploaden...";
+            renderBtn.disabled = true;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                const stream = canvas.captureStream(3); // 3 FPS
+                const recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                const chunks = [];
+
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    
+                    // Converteer naar DataURL en sla op in Firebase
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onloadend = () => {
+                        const base64Video = reader.result;
+                        
+                        db.ref('videos').push({
+                            author: currentUsername,
+                            videoData: base64Video,
+                            timestamp: Date.now()
+                        }).then(() => {
+                            renderBtn.innerText = "🎥 Genereer & Delen";
+                            renderBtn.disabled = false;
+                        }).catch(err => {
+                            console.error("Firebase opslagfout:", err);
+                            alert("Kon video niet opslaan in database.");
+                            renderBtn.innerText = "🎥 Genereer & Delen";
+                            renderBtn.disabled = false;
+                        });
+                    };
+                };
+
+                recorder.start();
+
+                let frameIdx = 0;
+                const interval = setInterval(() => {
+                    if (frameIdx >= capturedFrames.length) {
+                        clearInterval(interval);
+                        recorder.stop();
+                        return;
+                    }
+                    const frameImg = new Image();
+                    frameImg.src = capturedFrames[frameIdx];
+                    frameImg.onload = () => {
+                        ctx.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
+                    };
+                    frameIdx++;
+                }, 300);
+            };
+            img.src = capturedFrames[0];
+        }
+
+        function addVideoToFeed(url, author, key) {
+            const feed = document.getElementById('videoFeed');
+            
+            // Voorkom dubbele weergave
+            if (key && document.getElementById('vid-' + key)) return;
+
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            if (key) card.id = 'vid-' + key;
+
+            const authorEl = document.createElement('div');
+            authorEl.className = 'video-author';
+            authorEl.innerText = '👤 ' + (author || 'Anoniem');
+
+            const vid = document.createElement('video');
+            vid.src = url;
+            vid.controls = true;
+            vid.playsInline = true;
+            vid.onclick = () => vid.play();
+
+            card.appendChild(authorEl);
+            card.appendChild(vid);
+            feed.prepend(card);
+        }
+
+        /* --- REALTIME LISTENER VOOR FIREBASE --- */
+        function initFirebaseListeners() {
+            // Luister continu naar nieuw toegevoegde filmpjes
+            db.ref('videos').orderByChild('timestamp').limitToLast(20).on('child_added', (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.videoData) {
+                    addVideoToFeed(data.videoData, data.author, snapshot.key);
+                }
+            });
+        }
+
+        // Init
+        window.onload = () => {
+            startGame();
+            updateSlide();
+            initFirebaseListeners();
+        };
+    </script>
+</body>
+</html>
